@@ -14,7 +14,10 @@ module.exports = tseslint.config(
     },
     plugins: { "@typescript-eslint": tseslint.plugin },
     rules: {
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
+      ],
     },
   },
   {
