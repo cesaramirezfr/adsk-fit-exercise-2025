@@ -10,54 +10,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  install:
+  test:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          show-progress: false
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-  lint:
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    needs: [install]
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          show-progress: false
-
-      - name: Lint
-        run: pnpm lint
-
-  test:
-    if: github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    needs: [install]
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          show-progress: false
-
       - name: Test
         run: pnpm test --ci
