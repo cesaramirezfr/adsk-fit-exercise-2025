@@ -1,17 +1,15 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import rootRouter from "./routes/root.routes";
+import { logger, errorHandler, notFoundHandler } from "./middlewares";
 
 const app = express();
 
-// Middleware
 app.use(express.json());
+app.use(logger);
 
-// Routes
 app.use("/", rootRouter);
 
-// 404 handler
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({ error: "Not found" });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export { app };
