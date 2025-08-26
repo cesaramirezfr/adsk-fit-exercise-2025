@@ -1,7 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../errors/api.error";
 
-export const errorHandler = (error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+export const errorHandler = (
+  error: unknown,
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
   if (error instanceof ApiError) {
     return res.status(error.statusCode).json({
       error: error.message,
