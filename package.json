@@ -19,8 +19,7 @@
     "test:cov:ci": "jest --coverage --ci",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "prepare": "husky"
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "express": "^5.1.0",

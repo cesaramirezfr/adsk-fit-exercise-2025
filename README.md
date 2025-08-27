@@ -8,6 +8,8 @@ Testable REST API with pnpm, Jest, ESLint (flat config), Prettier, Husky, and Gi
 
 - **Node 22 LTS**
 - **pnpm 10+** (`corepack enable` recommended)
+- **Docker** (`compose` recommended)
+- **Redis** (for optional caching)
 
 ## Setup
 
@@ -17,12 +19,20 @@ pnpm dev         # start in dev (ts-node)
 # http://localhost:3000
 ```
 
+A `docker-compose.yaml` file is provided for a local redis instance integration:
+
+```bash
+docker compose up
+```
+
 ### Environment
 
 No `.env` needed by default. Optional vars:
 
 - `PORT` (default **3000**)
 - `OPENLIBRARY_SEARCH_API` (default **[https://openlibrary.org/search.json](https://openlibrary.org/search.json)**)
+- `CACHE_TTL` (default **3600** seconds [1 hour])
+- `REDIS_URL` (default **`redis://localhost:6379`**)
 
 ---
 
@@ -31,6 +41,7 @@ No `.env` needed by default. Optional vars:
 ```bash
 pnpm dev           # run ts directly
 pnpm build         # tsc -> dist/
+pnpm type-check    # tsc --noEmit
 pnpm start         # node dist/index.js
 pnpm lint          # ESLint (flat config)
 pnpm format        # Prettier
@@ -44,16 +55,17 @@ pnpm test:cov      # Jest coverage (html + lcov + text)
 
 ```
 src/
-  app.ts                 # express app (importable for tests)
-  index.ts               # server bootstrap
-  constants.ts           # PORT, OPENLIBRARY_SEARCH_API
+  clients/               # BooksExternalClient + OpenLibraryClient + Cache
   controllers/
-  routes/
+  infra/                 # redis interface
   middlewares/           # logger, error handler
   models/                # Book
-  clients/               # BooksExternalClient + OpenLibraryClient (DI)
+  routes/
   services/
   tests/
+  app.ts                 # express app (importable for tests)
+  constants.ts           # PORT, OPENLIBRARY_SEARCH_API, CACHE_TTL, REDIS_URL
+  index.ts               # server bootstrap
 ```
 
 ---
@@ -125,54 +137,19 @@ Trigger: on PR to `main`.
 
 ```bash
 pnpm build
-PORT=3000 pnpm start
+PORT=3000 REDIS_URL=redis://your-redis-service:6379 CACHE_TTL=3600 pnpm start
 ```
 
 ### Docker (recommended)
-
-`Dockerfile`
-
-```Dockerfile
-# ---- build stage ----
-FROM node:22-alpine AS build
-WORKDIR /app
-ENV NODE_ENV=production
-RUN corepack enable
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-COPY . .
-RUN pnpm build
-
-# ---- runtime stage ----
-FROM node:22-alpine
-WORKDIR /app
-ENV NODE_ENV=production
-RUN corepack enable
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-COPY --from=build /app/dist ./dist
-ENV PORT=3000
-EXPOSE 3000
-CMD ["node", "dist/index.js"]
-```
-
-`.dockerignore`
-
-```
-.git
-.github
-.husky
-.vscode
-coverage
-dist
-node_modules
-```
 
 Build & run:
 
 ```bash
 docker build -t book-search-api .
-docker run -p 3000:3000 --env PORT=3000 book-search-api
+docker run -p 3000:3000 \
+  -e PORT=3000 \
+  -e REDIS_URL=redis://your-redis-service:6379 \
+  book-search-api
 ```
 
 > Works on any container-friendly platform. Set env vars as needed.
