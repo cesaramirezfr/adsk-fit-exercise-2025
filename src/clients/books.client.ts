@@ -1,4 +1,4 @@
-import type { Book } from "../models/book.model";
+import type { BookSearchResult } from "../models/book.model";
 
 export type MatchMode = "any" | "all";
 
@@ -8,7 +8,7 @@ export interface BooksExternalClient {
     page?: number;
     limit?: number;
     match?: MatchMode;
-  }): Promise<Book[]>;
+  }): Promise<BookSearchResult>;
 }
 
 let _client: BooksExternalClient | null = null;

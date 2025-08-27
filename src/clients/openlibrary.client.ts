@@ -1,4 +1,4 @@
-import type { Book } from "../models/book.model";
+import type { Book, BookSearchResult } from "../models/book.model";
 import type { BooksExternalClient, MatchMode } from "./books.client";
 import { OPENLIBRARY_SEARCH_API } from "../constants";
 
@@ -10,7 +10,7 @@ export class OpenLibraryClient implements BooksExternalClient {
     page?: number;
     limit?: number;
     match?: MatchMode;
-  }): Promise<Book[]> {
+  }): Promise<BookSearchResult> {
     const { keywords, page = 1, limit = 10, match = "any" } = opts;
 
     const group = (kw: string) => `(title:${kw} OR author:${kw})`;
@@ -25,7 +25,7 @@ export class OpenLibraryClient implements BooksExternalClient {
 
     const url = `${this.baseUrl}?${params.toString()}`;
 
-    const res = await fetch(encodeURI(url));
+    const res = await fetch(url);
 
     if (!res.ok) {
       throw new Error(`OpenLibrary error: ${res.status}`);
@@ -35,10 +35,18 @@ export class OpenLibraryClient implements BooksExternalClient {
 
     const docs: any[] = Array.isArray(data.docs) ? data.docs : [];
 
-    return docs.map((d) => ({
+    const count =
+      Number(data.numFound) || Number(data.num_found) || docs.length;
+
+    const items = docs.map((d) => ({
       id: String(d.key ?? ""),
       title: String(d.title ?? ""),
       authors: Array.isArray(d.author_name) ? d.author_name.map(String) : [],
     })) as Book[];
+
+    return {
+      count,
+      items,
+    };
   }
 }
