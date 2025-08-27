@@ -42,6 +42,20 @@ describe("Books search controller", () => {
     expect(res.body.items[0].title).toContain("(all)");
   });
 
+  it("clamps page and limit values", async () => {
+    const res = await request(app).get("/books/search?q=test&page=-1&limit=99");
+    expect(res.status).toBe(200);
+    expect(res.body.page).toBe(1);
+    expect(res.body.limit).toBe(50);
+  });
+
+  it("parses page and limit to numbers", async () => {
+    const res = await request(app).get("/books/search?q=test&page=a&limit=b");
+    expect(res.status).toBe(200);
+    expect(res.body.page).toBe(1);
+    expect(res.body.limit).toBe(10);
+  });
+
   it("returns 400 when q is missing", async () => {
     const res = await request(app).get("/books/search");
     expect(res.status).toBe(400);
