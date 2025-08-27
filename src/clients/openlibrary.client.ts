@@ -15,10 +15,10 @@ export class OpenLibraryClient implements BooksExternalClient {
 
     const group = (kw: string) => `(title:${kw} OR author:${kw})`;
     const joiner = match === "all" ? " AND " : " OR ";
-    const queryExpr = keywords.map(group).join(joiner) || "";
+    const queryExpr = keywords.map(group).join(joiner);
 
     const params = new URLSearchParams({
-      q: queryExpr || "",
+      q: queryExpr,
       page: String(page),
       limit: String(limit),
     });
