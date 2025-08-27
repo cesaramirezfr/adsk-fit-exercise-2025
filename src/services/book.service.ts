@@ -1,4 +1,4 @@
-import type { Book } from "../models/book.model";
+import type { BookSearchResult } from "../models/book.model";
 import { getBooksClient } from "../clients/books.client";
 
 export async function searchBooks(params: {
@@ -6,7 +6,7 @@ export async function searchBooks(params: {
   page?: number;
   limit?: number;
   match?: "any" | "all";
-}): Promise<Book[]> {
+}): Promise<BookSearchResult> {
   const client = getBooksClient();
 
   return client.search(params);

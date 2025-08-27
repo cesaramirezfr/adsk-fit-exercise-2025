@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { searchBooks } from "../services/book.service";
+import { Book, PaginatedResult } from "../models/book.model";
 
 const toKeywords = (q: unknown): string[] => {
   if (typeof q !== "string") {
@@ -32,5 +33,12 @@ export const searchBooksController = async (req: Request, res: Response) => {
 
   const results = await searchBooks({ keywords, page, limit, match });
 
-  res.json({ items: results, page, limit, count: results.length });
+  const response: PaginatedResult<Book> = {
+    page,
+    limit,
+    count: results.count,
+    items: results.items,
+  };
+
+  res.json(response);
 };

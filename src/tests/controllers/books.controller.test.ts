@@ -10,11 +10,14 @@ describe("Books search controller", () => {
   beforeAll(() => {
     const clientMock: BooksExternalClient = {
       async search({ keywords, page = 1, limit = 10, match = "any" }) {
-        return keywords.map((kw, i) => ({
-          id: `/works/MOCK-${i}`,
-          title: `Title ${kw}(${match}) [p${page} l${limit}]`,
-          authors: [`Author ${kw}`],
-        }));
+        return {
+          count: keywords.length,
+          items: keywords.map((kw, i) => ({
+            id: `/works/MOCK-${i}`,
+            title: `Title ${kw}(${match}) [p${page} l${limit}]`,
+            authors: [`Author ${kw}`],
+          })),
+        };
       },
     };
     setBooksClient(clientMock);
@@ -23,7 +26,7 @@ describe("Books search controller", () => {
   it("returns items for comma/space-separated keywords", async () => {
     const res = await request(app).get("/books/search?q=tolkien,hobbit");
     expect(res.status).toBe(200);
-    expect(res.body.items).toHaveLength(2);
+    expect(res.body.count).toBe(2);
     expect(res.body.items[0].title).toContain("tolkien");
     expect(res.body.items[1].authors[0]).toContain("hobbit");
   });
