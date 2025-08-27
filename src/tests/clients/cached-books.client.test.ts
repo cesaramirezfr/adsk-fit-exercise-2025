@@ -1,6 +1,7 @@
 import { RedisCachedBooksClient } from "../../clients/cached-books.client";
 import type { BooksExternalClient } from "../../clients/books.client";
 import { BookSearchResult } from "../../models/book.model";
+import { CACHE_TTL } from "../../constants";
 
 describe("RedisCachedBooksClient", () => {
   const sampleResponse: BookSearchResult = {
@@ -24,7 +25,7 @@ describe("RedisCachedBooksClient", () => {
       search: jest.fn(), // should not be called
     };
 
-    const client = new RedisCachedBooksClient(redis, inner, { ttlSeconds: 60 });
+    const client = new RedisCachedBooksClient(redis, inner);
 
     const res = await client.search({
       keywords: ["foo"],
@@ -49,7 +50,7 @@ describe("RedisCachedBooksClient", () => {
       search: jest.fn().mockResolvedValue(sampleResponse),
     };
 
-    const client = new RedisCachedBooksClient(redis, inner, { ttlSeconds: 42 });
+    const client = new RedisCachedBooksClient(redis, inner);
 
     const params = {
       keywords: ["foo", "bar"],
@@ -69,7 +70,7 @@ describe("RedisCachedBooksClient", () => {
 
     expect(keyArg).toMatch(/^books:/);
     expect(typeof valueArg).toBe("string");
-    expect(optsArg).toEqual({ expiration: { type: "EX", value: 42 } });
+    expect(optsArg).toEqual({ expiration: { type: "EX", value: CACHE_TTL } });
   });
 
   it("keyword order-insensitive key", async () => {

@@ -72,6 +72,69 @@ describe("OpenLibraryClient.search", () => {
     expect(calledUrl.searchParams.get("q")).toBe(expectedQuery);
   });
 
+  it("returns empty on no results", async () => {
+    (fetch as unknown as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({}),
+    });
+
+    const client = new OpenLibraryClient();
+
+    const result = await client.search({ keywords: ["anything"] });
+
+    expect(result.count).toBe(0);
+    expect(result.items).toEqual([]);
+  });
+
+  it("handles missing fields in results", async () => {
+    const bookMock1 = {
+      // missing 'key'
+      author_name: ["Unknown Author"],
+      title: "Unknown Book",
+    };
+    const bookMock2 = {
+      key: "/works/OL2W",
+      // missing 'author_name'
+      title: "Mystery Title",
+    };
+    const bookMock3 = {
+      key: "/works/OL3W",
+      author_name: ["Author Three"],
+      // missing 'title'
+    };
+
+    (fetch as unknown as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        num_found: 1,
+        docs: [bookMock1, bookMock2, bookMock3],
+      }),
+    });
+
+    const client = new OpenLibraryClient();
+
+    const result = await client.search({ keywords: ["anything"] });
+
+    const expectedBook1: Book = {
+      id: "",
+      title: "Unknown Book",
+      authors: ["Unknown Author"],
+    };
+    const expectedBook2: Book = {
+      id: "/works/OL2W",
+      title: "Mystery Title",
+      authors: [],
+    };
+    const expectedBook3: Book = {
+      id: "/works/OL3W",
+      title: "",
+      authors: ["Author Three"],
+    };
+
+    expect(result.count).toBe(1);
+    expect(result.items).toEqual([expectedBook1, expectedBook2, expectedBook3]);
+  });
+
   it("throws on non-ok response", async () => {
     (fetch as unknown as jest.Mock).mockResolvedValueOnce({
       ok: false,
